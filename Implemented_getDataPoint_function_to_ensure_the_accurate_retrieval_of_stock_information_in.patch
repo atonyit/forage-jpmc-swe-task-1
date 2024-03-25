@@ -1,0 +1,92 @@
+Subject: [PATCH] Implemented getDataPoint function to ensure the accurate retrieval of stock information including stock name, bid price, ask price, and price (calculated as the average of bid and ask prices).
+Updated getRatio function to correctly calculate the ratio between two stock prices. 
+Refined main function to output precise stock information, bid and ask prices, and the corresponding price ratio.
+ Created different test case to guarantee edits to code were properly made
+---
+Index: client3.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/client3.py b/client3.py
+--- a/client3.py	(revision 879221fec2b863d37d5b493f02a530a8098ef6ef)
++++ b/client3.py	(date 1711332490672)
+@@ -35,14 +35,17 @@
+     stock = quote['stock']
+     bid_price = float(quote['top_bid']['price'])
+     ask_price = float(quote['top_ask']['price'])
+-    price = bid_price
++    price = (bid_price + ask_price)/2
+     return stock, bid_price, ask_price, price
+ 
+ 
+ def getRatio(price_a, price_b):
+     """ Get ratio of price_a and price_b """
+     """ ------------- Update this function ------------- """
+-    return 1
++    if(price_b == 0):
++        #Not dividing by zero
++        return
++    return price_a/price_b
+ 
+ 
+ # Main
+@@ -52,8 +55,10 @@
+         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+         """ ----------- Update to get the ratio --------------- """
++        prices = {}
+         for quote in quotes:
+             stock, bid_price, ask_price, price = getDataPoint(quote)
++            prices[stock] = price
+             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+ 
+-        print("Ratio %s" % getRatio(price, price))
++        print("Ratio %s" % getRatio(prices["ABC"], prices["DEF"]))
+Index: client_test.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/client_test.py b/client_test.py
+--- a/client_test.py	(revision 879221fec2b863d37d5b493f02a530a8098ef6ef)
++++ b/client_test.py	(date 1711332337905)
+@@ -1,5 +1,6 @@
+ import unittest
+-from client3 import getDataPoint
++from client3 import getDataPoint, getRatio
++
+ 
+ class ClientTest(unittest.TestCase):
+   def test_getDataPoint_calculatePrice(self):
+@@ -23,3 +24,29 @@
+ 
+ if __name__ == '__main__':
+     unittest.main()
++
++
++class TestYourFuction(unittest.TestCase):
++  def test_divide_by_zero(self):
++    # Test of when price_b is 0
++    price_a = 5
++    price_b = 0
++    self.assertIsNone(getRatio(price_a, price_b))
++
++  def test_a_is_zero(self):
++    # Test of when price_a is 0
++    price_a = 0
++    price_b = 10
++    self.assertEqual(getRatio(price_a, price_b), 0)
++
++  def normal_case(self):
++    # When neither inputs are 0 and both are integers
++    price_a = 300
++    price_b = 30
++    self.assertEqual(getRatio(price_a, price_b), 10)
++
++  def float_variable_a(self):
++    # When neither inputs are 0 and price_a is a float
++    price_a = 12.5
++    price_b = 10
++    self.assertEqual(getRatio(price_a, price_b), 1.25)
+\ No newline at end of file
